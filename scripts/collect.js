@@ -194,11 +194,8 @@ async function main() {
 
   leaderboard.sort((a, b) => b.reviews_30d - a.reviews_30d);
 
-  // Sort PRs: stale first, then newest first
-  openPRs.sort((a, b) => {
-    if (a.is_stale !== b.is_stale) return a.is_stale ? -1 : 1;
-    return a.hours_open - b.hours_open;
-  });
+  // Sort PRs: newest first
+  openPRs.sort((a, b) => a.hours_open - b.hours_open);
 
   const stalePRs = openPRs.filter((pr) => pr.is_stale);
   const avgTurnaround = leaderboard.filter((l) => l.avg_turnaround_hours !== null);

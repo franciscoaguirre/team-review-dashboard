@@ -6,12 +6,13 @@ const path = require("path");
 const CONFIG_PATH = path.join(__dirname, "..", "config.yml");
 const OUTPUT_PATH = path.join(__dirname, "..", "site", "data.json");
 
-const PR_QUERY = `
-query($owner: String!, $repo: String!, $cursor: String) {
-  repository(owner: $owner, name: $repo) {
-    pullRequests(states: OPEN, first: 100, after: $cursor) {
-      pageInfo { hasNextPage endCursor }
-      nodes {
+const SEARCH_PRS_QUERY = `
+query($searchQuery: String!, $cursor: String) {
+  rateLimit { remaining resetAt }
+  search(query: $searchQuery, type: ISSUE, first: 50, after: $cursor) {
+    pageInfo { hasNextPage endCursor }
+    nodes {
+      ... on PullRequest {
         number
         title
         url
@@ -20,9 +21,10 @@ query($owner: String!, $repo: String!, $cursor: String) {
         additions
         deletions
         author { login }
-        labels(first: 20) { nodes { name } }
-        reviewRequests(first: 20) { nodes { requestedReviewer { ... on User { login } } } }
-        reviews(first: 100) {
+        repository { nameWithOwner }
+        labels(first: 10) { nodes { name } }
+        reviewRequests(first: 10) { nodes { requestedReviewer { ... on User { login } } } }
+        reviews(first: 50) {
           nodes {
             state
             submittedAt
@@ -34,9 +36,34 @@ query($owner: String!, $repo: String!, $cursor: String) {
   }
 }`;
 
+async function graphqlWithRetry(octokit, query, vars) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const result = await octokit.graphql(query, vars);
+      const rl = result.rateLimit;
+      if (rl) {
+        console.log(`  Rate limit remaining: ${rl.remaining} (resets ${rl.resetAt})`);
+        if (rl.remaining < 50) {
+          const waitMs = Math.max(0, new Date(rl.resetAt) - Date.now()) + 1000;
+          console.log(`  Rate limit low, waiting ${Math.round(waitMs / 1000)}s...`);
+          await new Promise((r) => setTimeout(r, waitMs));
+        }
+      }
+      return result;
+    } catch (err) {
+      if (attempt < 2 && (err.status === 403 || err.message.includes("rate limit"))) {
+        const waitSec = 60 * (attempt + 1);
+        console.warn(`  Rate limited, retrying in ${waitSec}s...`);
+        await new Promise((r) => setTimeout(r, waitSec * 1000));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 async function main() {
   const config = yaml.load(fs.readFileSync(CONFIG_PATH, "utf8"));
-  const team = new Set(config.team);
   const repos = config.repos;
   const stalenessHours = config.staleness_threshold_hours || 24;
   const now = new Date();
@@ -46,21 +73,23 @@ async function main() {
   });
 
   const openPRs = [];
+  const repoFilter = repos.map((r) => `repo:${r}`).join(" ");
 
-  for (const repoFullName of repos) {
-    const [owner, repo] = repoFullName.split("/");
-    console.log(`Fetching PRs for ${repoFullName}...`);
+  // One search query per team member — fetches only their PRs across all repos
+  for (const user of config.team) {
+    const searchQuery = `is:pr is:open author:${user} ${repoFilter}`;
+    console.log(`Fetching open PRs for ${user}...`);
 
     try {
       let cursor = null;
       let hasMore = true;
 
       while (hasMore) {
-        const result = await octokit.graphql(PR_QUERY, { owner, repo, cursor });
-        const { nodes: pulls, pageInfo } = result.repository.pullRequests;
+        const result = await graphqlWithRetry(octokit, SEARCH_PRS_QUERY, { searchQuery, cursor });
+        const { nodes, pageInfo } = result.search;
 
-        for (const pr of pulls) {
-          if (!pr.author || !team.has(pr.author.login)) continue;
+        for (const pr of nodes) {
+          if (!pr.author) continue;
 
           const openedAt = new Date(pr.createdAt);
           const hoursOpen = Math.round((now - openedAt) / (1000 * 60 * 60));
@@ -102,7 +131,7 @@ async function main() {
               : "XL";
 
           openPRs.push({
-            repo: repoFullName,
+            repo: pr.repository.nameWithOwner,
             number: pr.number,
             title: pr.title,
             author: pr.author.login,
@@ -126,7 +155,7 @@ async function main() {
         cursor = pageInfo.endCursor;
       }
     } catch (err) {
-      console.warn(`Warning: Could not fetch PRs for ${repoFullName}: ${err.message}`);
+      console.warn(`Warning: Could not fetch PRs for ${user}: ${err.message}`);
     }
   }
 
@@ -140,8 +169,7 @@ async function main() {
   for (const user of config.team) {
     console.log(`Fetching review activity for ${user}...`);
 
-    const repoFilter = repos.map((r) => `repo:${r}`).join("+");
-    const query = `is:pr+reviewed-by:${user}+created:>=${since}+${repoFilter}`;
+    const query = `is:pr reviewed-by:${user} created:>=${since} ${repoFilter}`;
 
     try {
       const { data } = await octokit.rest.search.issuesAndPullRequests({
@@ -152,7 +180,7 @@ async function main() {
       leaderboard.push({
         user,
         reviews_30d: data.total_count,
-        avg_turnaround_hours: null, // Would require deeper analysis per-review
+        avg_turnaround_hours: null,
       });
     } catch (err) {
       console.warn(`Warning: Could not fetch review data for ${user}: ${err.message}`);
@@ -173,7 +201,6 @@ async function main() {
   });
 
   const stalePRs = openPRs.filter((pr) => pr.is_stale);
-  const totalReviews = leaderboard.reduce((s, l) => s + l.reviews_30d, 0);
   const avgTurnaround = leaderboard.filter((l) => l.avg_turnaround_hours !== null);
 
   const output = {

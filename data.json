@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-06T04:06:31.967Z",
+  "generated_at": "2026-03-06T04:09:48.337Z",
   "staleness_threshold_hours": 48,
   "open_prs": [
     {
@@ -35,7 +35,7 @@
       "hours_open": 255,
       "review_count": 10,
       "last_review_at": "2026-02-26T22:37:50.000Z",
-      "hours_since_last_review": 173,
+      "hours_since_last_review": 174,
       "is_stale": true,
       "labels": [],
       "draft": false,
@@ -415,7 +415,7 @@
       "author": "bkontur",
       "url": "https://github.com/paritytech/polkadot-sdk/pull/8326",
       "opened_at": "2025-04-24T14:37:23Z",
-      "hours_open": 7573,
+      "hours_open": 7574,
       "review_count": 4,
       "last_review_at": "2025-07-21T21:18:48.000Z",
       "hours_since_last_review": 5455,
@@ -542,7 +542,7 @@
       "hours_open": 11274,
       "review_count": 6,
       "last_review_at": "2025-02-14T16:37:13.000Z",
-      "hours_since_last_review": 9227,
+      "hours_since_last_review": 9228,
       "is_stale": true,
       "labels": [],
       "draft": true,
@@ -620,7 +620,7 @@
       "hours_open": 14268,
       "review_count": 3,
       "last_review_at": "2024-07-19T18:36:49.000Z",
-      "hours_since_last_review": 14265,
+      "hours_since_last_review": 14266,
       "is_stale": true,
       "labels": [
         "T12-benchmarks"
@@ -756,7 +756,7 @@
       "hours_open": 41,
       "review_count": 8,
       "last_review_at": "2026-03-04T21:39:37.000Z",
-      "hours_since_last_review": 30,
+      "hours_since_last_review": 31,
       "is_stale": false,
       "labels": [],
       "draft": false,

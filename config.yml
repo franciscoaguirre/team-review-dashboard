@@ -1,0 +1,15 @@
+team:
+  - bkontur
+  - x3c41a
+  - karolk91
+  - rosarp
+  - antkve
+  - franciscoaguirre
+  - mudigal
+
+repos:
+  - paritytech/polkadot-sdk
+  - paritytech/polkadot-bulletin-chain
+  - polkadot-fellows/runtimes
+
+staleness_threshold_hours: 24

@@ -1,0 +1,13 @@
+{
+  "name": "team-review-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Team PR review dashboard for tracking open PRs and review activity",
+  "scripts": {
+    "collect": "node scripts/collect.js"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.0.0",
+    "js-yaml": "^4.1.0"
+  }
+}

@@ -11,5 +11,7 @@ repos:
   - paritytech/polkadot-sdk
   - paritytech/polkadot-bulletin-chain
   - polkadot-fellows/runtimes
+  - paritytech/web3-storage
+  - paritytech/parity-bridges-common
 
 staleness_threshold_hours: 48

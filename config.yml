@@ -12,4 +12,4 @@ repos:
   - paritytech/polkadot-bulletin-chain
   - polkadot-fellows/runtimes
 
-staleness_threshold_hours: 24
+staleness_threshold_hours: 48

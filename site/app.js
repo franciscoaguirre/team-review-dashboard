@@ -103,9 +103,11 @@
           ? `<span class="badge ${sizeClass}">${pr.size}</span>`
           : "";
 
-        const reviewersHtml = (pr.reviewers || [])
-          .map((r) => esc(r))
-          .join(", ");
+        const reviewersList = (pr.reviewers || []).map((r) => esc(r));
+        const reviewersTooltip = reviewersList.join(", ");
+        const reviewersHtml = reviewersList.length <= 2
+          ? reviewersList.join(", ")
+          : `${reviewersList.slice(0, 2).join(", ")} +${reviewersList.length - 2}`;
 
         return `<tr>
           <td>
@@ -117,7 +119,7 @@
           <td>${esc(pr.repo.split("/")[1])}</td>
           <td>${sizeHtml}</td>
           <td>${formatHours(pr.hours_open)}</td>
-          <td class="reviewers-cell">${reviewersHtml}</td>
+          <td class="reviewers-cell" title="${reviewersTooltip}">${reviewersHtml}</td>
           <td>${pr.review_count}</td>
           <td><span class="badge ${status.cls}">${status.text}</span></td>
         </tr>`;

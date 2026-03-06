@@ -110,7 +110,7 @@ async function main() {
 
           const isStale = lastReviewAt
             ? hoursSinceLastReview >= stalenessHours
-            : hoursOpen >= stalenessHours;
+            : false;
 
           const requestedReviewers = pr.reviewRequests.nodes
             .map((r) => r.requestedReviewer?.login)

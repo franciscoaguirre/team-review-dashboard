@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PR Review Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>PR Review Dashboard</h1>
+      <div class="meta" id="last-updated">Loading...</div>
+    </header>
+
+    <div class="summary-cards" id="summary-cards"></div>
+
+    <div class="section">
+      <h2>PR Review Queue</h2>
+      <div class="filters" id="filters"></div>
+      <div class="pr-table-wrapper">
+        <table class="pr-table" id="pr-table">
+          <thead>
+            <tr>
+              <th>PR</th>
+              <th>Author</th>
+              <th>Repo</th>
+              <th>Size</th>
+              <th>Age</th>
+              <th>Reviewers</th>
+              <th>Reviews</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="pr-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Review Leaderboard (30 days)</h2>
+      <div class="leaderboard-chart-wrapper">
+        <canvas id="leaderboard-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
